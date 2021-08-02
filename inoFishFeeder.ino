@@ -1,99 +1,60 @@
 #include <Servo.h>
- 
-Servo servo0;
-Servo servo1;
-Servo servo2;
-Servo servo3;
 
-#define HRS_12 43100000UL 
-//#define HRS_12 4000UL 
-
-#define HRS_8  28800000UL 
-#define HRS_4  14400000UL 
 #define HRS_1  3600000UL
-
-//#define HRS_8  8000UL 
-//#define HRS_4  4000UL
-
 unsigned long startTime;
+
+// Number of servos to control, starting in pin 2
+const int nServos = 10;
+Servo servos[nServos];
+
+// Active servo and go flag
 int servoid = 0;
 bool vgo = false;
 
-int igo = 0;
+// Hour counter and period
+int ithr = 0;
+int cnhr = 24;
 
 
 void setup() {
-  servo0.attach(2);  servo0.write(0);
-  servo1.attach(3);  servo1.write(0);
-  servo2.attach(4);  servo2.write(0);
-  servo3.attach(5);  servo3.write(0);
+  // Init all servos
+  for (unsigned int i=0; i<nServos; i++){
+    servos[i].attach(i+2);
+    servos[i].write(0);
+  }
 
+  // Init led
   pinMode(LED_BUILTIN, OUTPUT);
   digitalWrite(LED_BUILTIN, LOW);
-  
+
+  // Init counter
   startTime = millis();
 }
- 
+
 void loop() {
 
-  if (millis() - startTime > HRS_4)
+  // Blink 0.5 h
+  if (millis() - startTime > HRS_1/2)
     digitalWrite(LED_BUILTIN, HIGH);
   else
     digitalWrite(LED_BUILTIN, LOW);
 
-/*
-  if ((millis() - startTime > HRS_8) && servoid==0)
-    vgo = true;
-      
-  if ((millis() - startTime > HRS_12) && servoid>0) {
-    if (igo==0)
-      igo = 1;
-    else if (igo>0) {
+  // Count hours
+  if (millis() - startTime > HRS_1){
+    ithr += 1;
+    if (ithr >= cnhr)
       vgo = true;
-      igo = 0;
-    }
   }
-*/
-      
-  if ((millis() - startTime > HRS_12)) {
-    if (igo==0)
-      igo = 1;
-    else if (igo>0) {
-      vgo = true;
-      igo = 0;
-    }
-  }
-      
 
+  // Control servo
   if (vgo == true){
-    
-    if (servoid==0)
-      for (int pos = 0; pos <= 180; pos += 1) {
-        servo0.write(pos);              
-        delay(20);                       
-      }
-    
-    if (servoid==1)
-      for (int pos = 0; pos <= 180; pos += 1) {
-        servo1.write(pos);              
-        delay(20);                       
-      }
-
-    if (servoid == 2)
-      for (int pos = 0; pos <= 180; pos += 1) {
-        servo2.write(pos);              
-        delay(20);                       
-      }
-
-    if (servoid == 3)
-      for (int pos = 0; pos <= 180; pos += 1) {
-        servo3.write(pos);              
-        delay(20);                       
-      }
+    for (int pos = 0; pos <= 180; pos += 1){
+      servos[servoid].write(pos);
+      delay(20);
+    }
 
     servoid++;
     vgo = false;
     startTime = millis();
   }
-   
 }
